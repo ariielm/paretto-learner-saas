@@ -1,0 +1,47 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editores
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Secrets / env
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+
+# Node (caso a stack escolhida use)
+node_modules/
+dist/
+build/
+.next/
+.nuxt/
+.svelte-kit/
+
+# Python (caso a stack escolhida use)
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Go (caso a stack escolhida use)
+bin/
+vendor/
+
+# Coverage / testes
+coverage/
+.nyc_output/
+
+# Claude Code workspace local (não vai pro repo)
+.claude/
+
+# Specify cache
+.specify/cache/
