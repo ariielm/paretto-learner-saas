@@ -692,7 +692,7 @@ git commit -m "feat: add docker-compose.yml with healthcheck"
 ## Task 12: Implementar healthcheck endpoint (Next.js Route Handler)
 
 **Files:**
-- Create: `app/api/health/route.ts` (Route Handler)
+- Create: `app/health/route.ts` (Route Handler)
 - Create: `tests/health.test.ts` (Vitest)
 - Modify: `package.json` (scripts `test`, `lint`, dev deps)
 - Modify: `vitest.config.ts` (criar se não existir)
@@ -742,7 +742,7 @@ Adicionar scripts em `package.json`:
 
 ```ts
 import { describe, it, expect } from 'vitest'
-import { GET } from '@/app/api/health/route'
+import { GET } from '@/app/health/route'
 
 describe('GET /health', () => {
   it('retorna 200 com status ok', async () => {
@@ -765,7 +765,7 @@ npm test
 
 Expected: FAIL com erro tipo "Cannot find module '@/app/api/health/route'" (endpoint não existe ainda).
 
-- [ ] **Step 12.4: Implementar `app/api/health/route.ts`**
+- [ ] **Step 12.4: Implementar `app/health/route.ts`**
 
 ```ts
 import { NextResponse } from 'next/server'
@@ -802,7 +802,7 @@ Expected: `HTTP/1.1 200 OK` + body JSON `{"status":"ok","version":"0.1.0-dev"}`.
 - [ ] **Step 12.7: Commit**
 
 ```bash
-git add app/api/health/route.ts tests/health.test.ts vitest.config.ts package.json package-lock.json tsconfig.json
+git add app/health/route.ts tests/health.test.ts vitest.config.ts package.json package-lock.json tsconfig.json
 git commit -m "feat: add /health endpoint with vitest test"
 ```
 
