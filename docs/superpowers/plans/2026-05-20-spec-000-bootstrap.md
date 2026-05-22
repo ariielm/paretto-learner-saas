@@ -7,9 +7,11 @@
 **Architecture:** Fluxo SDD via spec-kit oficial. Estrutura `.specify/` criada pela ferramenta na Task 3. Materialização manual dos arquivos textuais (constitution, standards, ADRs, README) a partir do design doc fundacional. Stack de aplicação é escolhida e justificada via ADR 0001 na Task 4 — tasks subsequentes que dependem da stack referenciam os requisitos da Seção 4.1 do design doc e do ADR 0001.
 
 **Tech Stack (fixo deste plano):** spec-kit CLI (Python via `uvx`), Docker + Docker Compose, GitHub Actions, GitHub CLI (`gh`).
-**Tech Stack da aplicação:** decidida na Task 4 (ADR 0001) — backend, frontend, DB, ORM, reverse proxy.
+**Tech Stack da aplicação (decidida em 2026-05-21):** Next.js 15 (App Router) + TypeScript 5.x + Node 22 LTS, PostgreSQL 16, Drizzle ORM, Nginx + Certbot, Zod. Detalhes completos e justificativas em `docs/superpowers/specs/2026-05-21-pre-implementation-decisions-design.md` §1. A Task 4 deste plano apenas materializa essa decisão em ADRs.
 
-**Referência primária:** `docs/superpowers/specs/2026-05-20-saas-foundation-design.md` (design fundacional). Toda Task referencia seções específicas dele.
+**Referências primárias:**
+- `docs/superpowers/specs/2026-05-20-saas-foundation-design.md` (design fundacional — constitution, standards, backlog, workflow).
+- `docs/superpowers/specs/2026-05-21-pre-implementation-decisions-design.md` (pré-implementação — stack + insumos das specs 001 e 002).
 
 ---
 
@@ -114,72 +116,79 @@ git commit -m "chore: initialize spec-kit structure via specify init"
 
 ---
 
-## Task 4: Decidir stack via ADR 0001 e CI via ADR 0002
+## Task 4: Materializar ADR 0001 (stack) e ADR 0002 (CI) a partir do design doc de pré-implementação
 
 **Files:**
 - Create: `docs/decisions/0001-stack-escolhida.md`
 - Create: `docs/decisions/0002-ci-no-github-actions.md`
 
-Esta é a única task **de decisão humana ativa** neste plano. As demais são execuções a partir desta decisão.
+Decisão de stack já foi tomada na sessão de brainstorming de 2026-05-21 e está materializada em `docs/superpowers/specs/2026-05-21-pre-implementation-decisions-design.md` §1. Esta task só **registra** a decisão como ADR (não re-decide).
 
-- [ ] **Step 4.1: Conversa de decisão de stack**
+- [ ] **Step 4.1: Verificar decisão consolidada de stack**
 
-Time (pelo menos 2 devs) discute e decide as 6 dimensões a seguir, com base nos critérios da Seção 6 do design doc:
+A decisão é (referência: design doc de pré-implementação §1.1):
 
-| Dimensão | Opções típicas | Decisão |
+| Dimensão | Decisão | Versão alvo |
 |---|---|---|
-| Backend | Node/TS, Python (FastAPI), Go, Ruby, Elixir | ___ |
-| Frontend | Next.js, Nuxt, SvelteKit, Astro, Remix, server-rendered | ___ |
-| DB | PostgreSQL, MySQL, SQLite | ___ |
-| ORM | depende da linguagem (Drizzle, Prisma, SQLAlchemy, GORM, etc.) | ___ |
-| Reverse proxy | Caddy, Traefik, Nginx | ___ |
-| Arquitetura | SPA+REST, monolito server-rendered, RPC tipado | ___ |
+| Backend + Frontend (1 codebase) | Next.js (App Router) + TypeScript | Next 15.x, TS 5.x |
+| Arquitetura back↔front | Server Components + Server Actions + Route Handlers (`app/api/*`) | — |
+| Banco de dados | PostgreSQL | 16.x |
+| ORM / query layer | Drizzle ORM + drizzle-kit | 0.3x+ |
+| Reverse proxy / TLS | Nginx + Certbot | stable |
+| Runtime container | Node.js LTS | 22.x |
+| Validação de schemas | Zod | 3.x |
 
-Critérios de avaliação (recomendados):
-- Familiaridade do time (curva de aprendizado é custo real)
-- Ecossistema de bibliotecas para LLM SDKs (Gemini, OpenAI)
-- Velocidade de iteração em SaaS de tamanho v0.1
-- Coerência com princípio III (self-hosted, dados na VPS)
+Critérios já aplicados na decisão: minimização de linguagens (1 TS), sinal LLM em datasets, self-hostable (princípio III), JSONB para campos flexíveis do domínio.
 
 - [ ] **Step 4.2: Criar `docs/decisions/0001-stack-escolhida.md`**
 
-Conteúdo completo do arquivo:
+Conteúdo completo do arquivo (escrever literalmente; substituir apenas a data e nomes dos decisores):
 
 ```markdown
 # ADR 0001: Stack tecnológica escolhida
 
 **Status:** Aceito
-**Data:** <YYYY-MM-DD do dia da decisão>
-**Decisores:** <nomes dos devs presentes>
+**Data:** 2026-05-21
+**Decisores:** Ariel, Vinicius
 
 ## Contexto
 
-O design fundacional (`docs/superpowers/specs/2026-05-20-saas-foundation-design.md`, Seção 6) deferiu a escolha de stack para a spec 000 plan.md. Esta decisão afeta todas as specs subsequentes da v0.1.
+O design fundacional (`docs/superpowers/specs/2026-05-20-saas-foundation-design.md`, Seção 6) deferiu a escolha de stack para a spec 000 plan.md. A decisão foi fechada na sessão de brainstorming de 2026-05-21, registrada em `docs/superpowers/specs/2026-05-21-pre-implementation-decisions-design.md` §1. Esta ADR materializa essa decisão no formato canônico.
+
+Critério-guia: implementação será feita majoritariamente com auxílio de LLM (Claude Code); stack deve favorecer LLMs — linguagens com forte sinal em datasets recentes, frameworks bem-documentados, paradigmas explícitos, minimização do número de linguagens/codebases.
 
 ## Decisão
 
-Adotamos a seguinte stack:
-
-- **Backend:** <linguagem + framework + versão>
-- **Frontend:** <framework + versão>
-- **DB:** <tecnologia + versão major>
-- **ORM/query layer:** <ferramenta + versão major>
-- **Reverse proxy:** <Caddy/Traefik/Nginx>
-- **Arquitetura backend↔frontend:** <SPA+REST | monolito SSR | RPC tipado | etc>
+- **Backend + Frontend:** Next.js 15 (App Router) + TypeScript 5.x — monorepo único, 1 linguagem ponta a ponta.
+- **Arquitetura backend↔frontend:** Server Components + Server Actions (mutações) + Route Handlers em `app/api/*` (OAuth callback, webhooks). Sem API REST tradicional separada.
+- **DB:** PostgreSQL 16. JSONB nativo para `Tema.mini_perfil` e `EventoSistema.payload`.
+- **ORM:** Drizzle ORM + drizzle-kit (migrations). Schema em TypeScript, SQL legível, sem cliente gerado.
+- **Reverse proxy / TLS:** Nginx + Certbot.
+- **Runtime container:** Node 22 LTS.
+- **Validação de schemas:** Zod 3.x (única para Server Actions, payloads de eventos, output estruturado de LLM e parsing de env).
 
 ## Consequências
 
-- **Positivas:** <listar 2-4 vantagens concretas desta combinação>
-- **Negativas / trade-offs aceitos:** <listar 2-3 limitações ou custos>
-- **Impacto no princípio III (dados na VPS):** <confirmar que stack é self-hostable; se não, explicitar a exceção>
+- **Positivas:**
+  - 1 linguagem reduz contexto que LLM precisa carregar para qualquer edição.
+  - Next.js App Router é padrão dominante em datasets recentes — LLM gera código de alta qualidade.
+  - Server Actions + RSC reduzem boilerplate de API REST.
+  - Drizzle expõe SQL explicitamente; LLM enxerga o que está acontecendo (vs Prisma com cliente gerado).
+  - Postgres + JSONB suporta o domínio sem migrations complicadas.
+- **Negativas / trade-offs aceitos:**
+  - Acoplamento Next-específico (Server Actions e RSC são Next-only). Migração para outro framework é trabalho real, não previsto v0.1–v0.3.
+  - Drizzle evolui rápido; versionar exatamente e atualizar via ADR quando upgrade for material.
+  - Nginx + Certbot exige cron de renovação e config mais verbosa que Caddy. Aceito pela familiaridade.
+- **Impacto no princípio III (dados na VPS):** Stack inteira é self-hostable. Next.js roda em container Node, Postgres em container oficial, Nginx em container ou nativo na VPS. Sem provider externo de dados.
 
 ## Alternativas consideradas
 
-- **<Alt 1>:** <breve descrição + por que rejeitada>
-- **<Alt 2>:** <breve descrição + por que rejeitada>
+- **FastAPI (Python) + React (Vite) separado.** Pydantic excelente para output estruturado de LLM, mas dobra contexto LLM (2 linguagens + 2 codebases) e força contratos JSON duplicados. Rejeitada.
+- **Express/Fastify + React (Vite) separado.** Mesma linguagem que opção atual, mas 2 apps com mais boilerplate manual (rotas REST + estado de cliente + loading states). Server Actions reduzem esse boilerplate. Rejeitada.
+- **SQLite + Drizzle.** Zero ops, mas contenção concorrente em geração on-demand de árvore (LLM call de 5-20s segurando lock). Migração futura para Postgres é custosa. Rejeitada — Postgres desde dia 1 é mais barato.
+- **Prisma.** Mais sinal em datasets antigos, mas magia (schema próprio + cliente gerado) cresce contexto LLM. Drizzle preferido.
+- **Caddy.** Mais simples para Let's Encrypt, mas time optou por Nginx + Certbot.
 ```
-
-Salvar com a data real e nomes do time. Os campos entre `< >` devem ser substituídos por conteúdo concreto — NÃO deixar literais `<...>` no arquivo final.
 
 - [ ] **Step 4.3: Criar `docs/decisions/0002-ci-no-github-actions.md`**
 
@@ -189,8 +198,8 @@ Conteúdo completo do arquivo:
 # ADR 0002: CI no GitHub Actions
 
 **Status:** Aceito
-**Data:** <YYYY-MM-DD>
-**Decisores:** <nomes>
+**Data:** 2026-05-21
+**Decisores:** Ariel, Vinicius
 
 ## Contexto
 
@@ -200,7 +209,7 @@ A constitution (princípio III) exige que dados de usuário permaneçam na VPS. 
 
 Adotamos **GitHub Actions** como plataforma de CI para o repositório `ariielm/paretto-learner-saas`.
 
-CI executa: lint, unit tests, integration tests com mocks, build de container. CI NÃO toca dados reais de usuário em nenhum momento — fixtures e mocks apenas.
+CI executa: lint (ESLint), type-check (`tsc --noEmit`), unit tests + integration tests (Vitest), build de container (`docker build .`). CI NÃO toca dados reais de usuário em nenhum momento — fixtures e mocks apenas.
 
 ## Consequências
 
@@ -211,10 +220,10 @@ CI executa: lint, unit tests, integration tests com mocks, build de container. C
 ## Alternativas consideradas
 
 - **Self-hosted CI (Woodpecker, Drone) na própria VPS:** Mais alinhado ao princípio III literal, mas VPS já hospeda app + DB e ficaria sobrecarregada. Setup operacional adicional sem benefício prático na v0.1.
-- **Sem CI / git hooks locais (pre-commit):** Dev pode pular hook com `--no-verify`, sem garantia de qualidade. Inadequado para time multi-dev.
+- **Sem CI / git hooks locais (pre-commit):** Dev pode pular hook com `--no-verify`, sem garantia de qualidade. Inadequado mesmo com time de 2 pessoas + LLM como executor.
 ```
 
-Salvar com data e nomes reais.
+Salvar literalmente.
 
 - [ ] **Step 4.4: Commit dos ADRs**
 
@@ -489,26 +498,93 @@ git commit -m "docs(standards): add prompt-management standard"
 
 ---
 
-## Task 10: Configurar Dockerfile mínimo
+## Task 10: Scaffold do projeto Next.js + Dockerfile
 
 **Files:**
+- Create (via tooling): estrutura inteira do projeto Next.js (`app/`, `package.json`, `tsconfig.json`, `next.config.mjs`, etc.)
 - Create: `Dockerfile`
+- Modify: `next.config.mjs` (adicionar `output: 'standalone'`)
 
-Conteúdo depende da stack escolhida no ADR 0001. **Requisitos obrigatórios** do Dockerfile (qualquer stack):
+**Requisitos obrigatórios:**
 
-1. Base image oficial e estável da linguagem escolhida (não `:latest`).
-2. Multi-stage build: estágio `builder` (instala deps + builda) + estágio `runtime` (só artefatos finais).
-3. Usuário não-root no estágio `runtime`.
-4. `EXPOSE` da porta da aplicação (definida no ADR 0001 — recomendado `3000` ou `8000`).
-5. `HEALTHCHECK` instruction apontando para endpoint `/health` (criado na Task 12).
-6. `CMD` que inicia o servidor em modo produção.
+1. Base image: `node:22-alpine` (pin de versão, não `:latest`).
+2. Multi-stage: estágio `deps` (instala dependencies) + `builder` (constrói app Next) + `runner` (só artefatos finais).
+3. Usuário não-root no estágio `runner` (`nextjs` user UID 1001).
+4. `EXPOSE 3000`.
+5. `HEALTHCHECK` apontando para `/health` (endpoint criado na Task 12).
+6. `CMD ["node", "server.js"]` rodando o output `standalone` do Next.
 
-- [ ] **Step 10.1: Escrever `Dockerfile` conforme stack do ADR 0001**
+Pré-requisito: `next.config.mjs` precisa ter `output: 'standalone'` para o build gerar o servidor mínimo.
 
-Não há template universal — depende da decisão. Exemplos de pontos de referência:
-- Node/TS: usar `node:20-alpine` ou `node:22-alpine`, multi-stage com `npm ci` + `npm run build`.
-- Python: usar `python:3.12-slim`, multi-stage com `uv` ou `pip install --user`.
-- Go: usar `golang:1.23-alpine` builder + `gcr.io/distroless/static-debian12` runtime.
+- [ ] **Step 10.0: Gerar projeto Next.js**
+
+Rodar `create-next-app` no diretório atual (já contém arquivos como `docs/`, `.specify/`, README.md, etc. — `create-next-app` precisa de flag para não reclamar):
+
+```bash
+npx create-next-app@latest . \
+  --typescript \
+  --eslint \
+  --app \
+  --src-dir=false \
+  --tailwind=false \
+  --turbopack=false \
+  --import-alias='@/*' \
+  --use-npm \
+  --skip-install
+```
+
+Se o CLI reclamar de diretório não-vazio, aceitar a sobrescrita seletiva ou rodar `npx create-next-app@latest paretto-next-tmp` em diretório temporário e copiar os arquivos relevantes (`app/`, `package.json`, `tsconfig.json`, `next.config.mjs`, `next-env.d.ts`, `.eslintrc.json`, `public/`) para a raiz, depois apagar o temporário.
+
+Após o scaffold, rodar `npm install` para popular `node_modules` e gerar `package-lock.json`.
+
+Editar `next.config.mjs` para adicionar `output: 'standalone'`:
+
+```js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  output: 'standalone',
+}
+
+export default nextConfig
+```
+
+Verificar que `npm run dev` sobe o app em `http://localhost:3000`. Parar (`Ctrl+C`).
+
+Verificar que `npm run build` completa sem erro. Após build, deve existir `.next/standalone/server.js`.
+
+- [ ] **Step 10.1: Escrever `Dockerfile`**
+
+Conteúdo de referência (ajustar apenas se o estrutura do projeto Next.js diferir):
+
+```dockerfile
+# syntax=docker/dockerfile:1.7
+
+FROM node:22-alpine AS deps
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+
+FROM node:22-alpine AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+RUN npm run build
+
+FROM node:22-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+RUN addgroup --system --gid 1001 nodejs \
+ && adduser --system --uid 1001 nextjs
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+USER nextjs
+EXPOSE 3000
+ENV PORT=3000 HOSTNAME=0.0.0.0
+HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
+CMD ["node", "server.js"]
+```
 
 Verificar que os 6 requisitos obrigatórios estão atendidos.
 
@@ -531,11 +607,18 @@ docker stop paretto-test
 
 Expected: container sobe, fica visível em `docker ps`, para limpo. Healthcheck pode ainda não responder (endpoint criado na Task 12) — OK por ora.
 
-- [ ] **Step 10.4: Commit**
+- [ ] **Step 10.4: Commit do scaffold + Dockerfile**
+
+Em 2 commits separados pra história ficar limpa:
 
 ```bash
+# 1) Scaffold Next.js
+git add package.json package-lock.json tsconfig.json next.config.mjs next-env.d.ts .eslintrc.json app/ public/
+git commit -m "feat: scaffold Next.js 15 (App Router, TypeScript)"
+
+# 2) Dockerfile
 git add Dockerfile
-git commit -m "feat: add multi-stage Dockerfile"
+git commit -m "feat: add multi-stage Dockerfile for Next.js standalone"
 ```
 
 ---
@@ -575,11 +658,17 @@ services:
       start_period: 20s
 ```
 
-- [ ] **Step 11.2: Criar `.env` local com placeholder mínimo**
+- [ ] **Step 11.2: Criar `.env` local com placeholders mínimos para a v0.1 inicial**
 
 ```bash
-echo "NODE_ENV=development" > .env  # ajustar variável conforme stack
+cat > .env <<'EOF'
+NODE_ENV=development
+PORT=3000
+LLM_PROVIDER=mock
+EOF
 ```
+
+(Demais variáveis — `DATABASE_URL`, `GEMINI_API_KEY`, `GOOGLE_CLIENT_ID`, etc. — entram na Task 15 via `.env.example` e ficam vazias localmente até as specs que as consomem.)
 
 Importante: `.env` está em `.gitignore`. Não vai pro repo.
 
@@ -600,49 +689,106 @@ git commit -m "feat: add docker-compose.yml with healthcheck"
 
 ---
 
-## Task 12: Implementar healthcheck endpoint
+## Task 12: Implementar healthcheck endpoint (Next.js Route Handler)
 
 **Files:**
-- Depende da stack. Exemplo paths:
-  - Node/Next: `app/api/health/route.ts`
-  - FastAPI: `app/main.py` (endpoint `/health`)
-  - Go: `cmd/server/main.go` + handler em `internal/health/handler.go`
+- Create: `app/api/health/route.ts` (Route Handler)
+- Create: `tests/health.test.ts` (Vitest)
+- Modify: `package.json` (scripts `test`, `lint`, dev deps)
+- Modify: `vitest.config.ts` (criar se não existir)
+
+**Pré-requisito da task:** projeto Next.js inicializado (`npx create-next-app@latest .` com TypeScript, App Router, ESLint). Esta etapa precede o Step 12.1 — se ainda não rodou, rodar agora.
 
 **Requisitos obrigatórios:**
 
 1. Endpoint `GET /health` retorna HTTP `200` quando o app está vivo.
-2. Body do response: JSON `{ "status": "ok", "version": "<git short SHA ou env var>" }`.
+2. Body do response: JSON `{ "status": "ok", "version": "0.1.0-dev" }` (versão lida de `package.json` ou env var no futuro).
 3. Sem autenticação (precisa funcionar antes do auth ser configurado).
-4. **Teste automatizado** que dispara request e verifica status 200 + body — escrito ANTES da implementação (TDD).
+4. **Teste automatizado em Vitest** que faz request ao handler e verifica status 200 + body — escrito ANTES da implementação (TDD).
 
-- [ ] **Step 12.1: Escrever teste do healthcheck (TDD)**
+- [ ] **Step 12.1: Adicionar Vitest ao projeto e criar `vitest.config.ts`**
 
-Teste deve:
-- Subir o app (ou usar fixture/test client do framework).
-- Fazer GET em `/health`.
-- Asserir `status_code == 200`.
-- Asserir `response.json["status"] == "ok"`.
-
-Linguagem do teste depende da stack — usar framework de teste padrão (Vitest, Jest, pytest, go test, etc.).
-
-- [ ] **Step 12.2: Rodar teste e confirmar falha**
-
-Comando varia por stack (`npm test`, `pytest`, `go test`, etc.). Expected: FAIL com "endpoint não existe" / "404".
-
-- [ ] **Step 12.3: Implementar endpoint mínimo**
-
-Handler responde:
-```json
-{ "status": "ok", "version": "0.1.0-dev" }
+```bash
+npm install --save-dev vitest @vitest/coverage-v8
 ```
 
-(Versão real vem de `package.json` / `pyproject.toml` / `go.mod` ou variável injetada no build.)
+Criar `vitest.config.ts` na raiz:
 
-- [ ] **Step 12.4: Rodar teste e confirmar pass**
+```ts
+import { defineConfig } from 'vitest/config'
 
-Expected: 1 test passed.
+export default defineConfig({
+  test: {
+    environment: 'node',
+    include: ['tests/**/*.test.ts'],
+  },
+})
+```
 
-- [ ] **Step 12.5: Verificar end-to-end no container**
+Adicionar scripts em `package.json`:
+
+```json
+{
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
+  }
+}
+```
+
+- [ ] **Step 12.2: Escrever teste do healthcheck (TDD) — `tests/health.test.ts`**
+
+```ts
+import { describe, it, expect } from 'vitest'
+import { GET } from '@/app/api/health/route'
+
+describe('GET /health', () => {
+  it('retorna 200 com status ok', async () => {
+    const res = await GET()
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.status).toBe('ok')
+    expect(typeof body.version).toBe('string')
+  })
+})
+```
+
+Configurar alias `@/*` no `tsconfig.json` se ainda não existir (padrão do `create-next-app`).
+
+- [ ] **Step 12.3: Rodar teste e confirmar falha**
+
+```bash
+npm test
+```
+
+Expected: FAIL com erro tipo "Cannot find module '@/app/api/health/route'" (endpoint não existe ainda).
+
+- [ ] **Step 12.4: Implementar `app/api/health/route.ts`**
+
+```ts
+import { NextResponse } from 'next/server'
+
+export const dynamic = 'force-dynamic'
+
+export async function GET() {
+  return NextResponse.json({
+    status: 'ok',
+    version: '0.1.0-dev',
+  })
+}
+```
+
+- [ ] **Step 12.5: Rodar teste e confirmar pass**
+
+```bash
+npm test
+```
+
+Expected: `1 test passed`.
+
+- [ ] **Step 12.6: Verificar end-to-end no container**
 
 ```bash
 docker compose up --build -d
@@ -651,13 +797,13 @@ curl -i http://localhost:3000/health
 docker compose down
 ```
 
-Expected: `HTTP/1.1 200 OK` + body JSON com `status: ok`.
+Expected: `HTTP/1.1 200 OK` + body JSON `{"status":"ok","version":"0.1.0-dev"}`.
 
-- [ ] **Step 12.6: Commit**
+- [ ] **Step 12.7: Commit**
 
 ```bash
-git add <arquivos do healthcheck>
-git commit -m "feat: add /health endpoint with test"
+git add app/api/health/route.ts tests/health.test.ts vitest.config.ts package.json package-lock.json tsconfig.json
+git commit -m "feat: add /health endpoint with vitest test"
 ```
 
 ---
@@ -689,7 +835,7 @@ mkdir -p .github/workflows
 
 - [ ] **Step 13.2: Escrever `.github/workflows/ci.yml`**
 
-Template-base (ajustar comandos conforme stack — exemplo abaixo é para Node, substituir conforme ADR):
+Conteúdo concreto (Node 22 alinhado com Dockerfile, `npm` como gerenciador):
 
 ```yaml
 name: CI
@@ -708,26 +854,33 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup <linguagem>
-        uses: <action-oficial-da-linguagem>@<versao>
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          <linguagem>-version: '<versao-do-Dockerfile>'
-          cache: '<gerenciador-de-pacotes>'
+          node-version: '22'
+          cache: 'npm'
 
       - name: Install dependencies
-        run: <comando-install>
+        run: npm ci
 
       - name: Lint
-        run: <comando-lint>
+        run: npm run lint
+
+      - name: Type-check
+        run: npm run typecheck
 
       - name: Test
-        run: <comando-test>
+        run: npm test
 
       - name: Build container
         run: docker build -t paretto-saas:ci .
 ```
 
-Substituir todos os `<...>` por valores reais conforme ADR 0001.
+Notas:
+- `npm run lint` usa o `next lint` configurado pelo `create-next-app`.
+- `npm run typecheck` invoca `tsc --noEmit` (script adicionado na Task 12.1).
+- `npm test` invoca `vitest run` (script adicionado na Task 12.1).
+- Build do container valida que `Dockerfile` constrói sem erro.
 
 - [ ] **Step 13.3: Commit e push para disparar primeiro run**
 
@@ -820,27 +973,31 @@ git commit -m "docs: update README with stack, run instructions, and refs"
 
 - [ ] **Step 15.1: Escrever `.env.example` com placeholders (não valores reais)**
 
-Variáveis mínimas para v0.1 (ajustar nomes/valores conforme stack):
+Variáveis mínimas para a v0.1 (alinhadas com a stack Next.js/Node 22 e as decisões do design doc de pré-implementação §3.6):
 
 ```bash
 # Ambiente
-NODE_ENV=development        # ou PYTHON_ENV / GO_ENV conforme stack
+NODE_ENV=development
 PORT=3000
 
-# LLM (spec 002)
-LLM_PROVIDER=mock           # opções: mock, gemini, openai
-GEMINI_API_KEY=             # preencher quando for usar Gemini
+# LLM Gateway (spec 002)
+LLM_PROVIDER=mock                  # opções: mock, gemini
+LLM_MODEL_ARVORE=gemini-2.5-pro
+LLM_MODEL_CONTEUDO=gemini-2.5-flash
+GEMINI_API_KEY=                    # preencher quando for usar Gemini
+LLM_LIMIT_ARVORE_HORA=20
+LLM_LIMIT_CONTEUDO_HORA=100
+LLM_TIMEOUT_MS=60000
 
 # Database (spec 004 — placeholder por ora)
-DATABASE_URL=
+DATABASE_URL=postgres://paretto:paretto@localhost:5432/paretto
 
 # Auth Google OAuth (spec 003 — placeholder por ora)
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
-SESSION_SECRET=             # gerar com `openssl rand -hex 32`
+SESSION_SECRET=                    # gerar com `openssl rand -hex 32`
+NEXTAUTH_URL=http://localhost:3000  # ajustar quando spec 003 escolher lib de auth
 ```
-
-Ajustar nomes de variáveis conforme convenção da stack (`SESSION_SECRET` em Node, `SECRET_KEY` em Django/FastAPI, etc.).
 
 - [ ] **Step 15.2: Commit**
 
@@ -990,5 +1147,5 @@ A partir daqui, **specs 001 (Domínio) e 002 (LLM Gateway)** podem rolar em para
 ## Self-Review checklist (executado pelo autor do plano)
 
 - **Spec coverage:** Cada item da Seção 4 (Spec 000) do design doc tem task neste plano? Constitution ✅ (Task 5), Standards ✅ (Tasks 6-9), esqueleto + healthcheck ✅ (Tasks 10-12), CI ✅ (Task 13), Docker ✅ (Tasks 10-11), `docker compose up` funcional ✅ (Task 17.1), ADRs ✅ (Task 4).
-- **Placeholder scan:** Tasks 10-13 contêm placeholders intencionais (`<linguagem>`, `<comando-install>`) porque dependem do ADR 0001. Cada placeholder está claramente marcado como "substituir conforme stack" e tem requisitos completos listados.
+- **Placeholder scan:** Tasks 10-13 e 15 originalmente continham placeholders (`<linguagem>`, `<comando-install>`) que dependiam do ADR 0001. Após a sessão de pré-implementação de 2026-05-21 (ver design doc dedicado), todos foram substituídos pelos valores reais: Node 22, npm, Next.js 15, Drizzle, Postgres 16, Nginx. Os únicos `<...>` que sobraram são exemplos de comando (`<run-id>` em `gh run view`) e campos a preencher em runtime (`<sha do merge>` em `Task 17.7`).
 - **Type consistency:** Nomes de arquivos consistentes entre tasks (`.specify/memory/constitution.md`, `.specify/standards/testing.md`, etc.). `feat/000-bootstrap` referenciada com mesmo nome em Tasks 2, 13.3, 17.5, 17.6.
