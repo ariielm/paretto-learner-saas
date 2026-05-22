@@ -1,5 +1,7 @@
 # Paretto SaaS — Foundation Design
 
+**Status:** spec 000 implementada em commit `a52af2b` em 2026-05-22.
+
 > Output da sessão de brainstorming que precede a primeira spec do projeto. Define o framework SDD operacional, a constitution refinada, os standards docs, o backlog v0.1 detalhado e o workflow de trabalho do time.
 
 **Documento de design** — não substitui as specs individuais; precede e enquadra todas elas.
