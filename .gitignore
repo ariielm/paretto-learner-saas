@@ -17,13 +17,15 @@ Thumbs.db
 *.log
 logs/
 
-# Node (caso a stack escolhida use)
+# Node / Next.js
 node_modules/
 dist/
 build/
 .next/
-.nuxt/
-.svelte-kit/
+out/
+.vercel/
+*.tsbuildinfo
+next-env.d.ts
 
 # Python (caso a stack escolhida use)
 __pycache__/
