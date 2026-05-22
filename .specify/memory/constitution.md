@@ -1,50 +1,37 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+# Paretto SaaS — Constitution
 
-## Core Principles
+## I. LLM Como Porta, Não Como Marca (NON-NEGOTIABLE)
+Todo uso de LLM DEVE passar por interface abstrata (`LLMProvider`). Trocar Gemini ↔ OpenAI ↔ Anthropic é configuração via env, nunca refactor. Mocking trivial. Features acopladas a provider específico são rejeitadas.
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+## II. Multi-Tenancy É Fundação, Não Retrofit (NON-NEGOTIABLE)
+Toda entidade persistida DEVE carregar `user_id` desde o primeiro commit. Não existe tabela global. Queries sem `user_id` em contexto autenticado são bugs de segurança.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+## III. Dados Permanecem Na VPS (v0.1–v0.3)
+Banco, arquivos, embeddings, logs, backups DEVEM ficar na VPS ou volume montado. Provider externo requer ADR explícito em `docs/decisions/`. Default = self-hosted.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+## IV. Calibração Ao Aprendiz É Diferencial (NON-NEGOTIABLE)
+Geração de conteúdo DEVE ser informada por contexto declarado pelo usuário (v0.1: mini-perfil por tema). Mini-perfil é **IMUTÁVEL** após criação do tema (regenerar = criar tema novo).
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+## V. Densidade Informacional > Volume
+Cada nó, página, feature, linha de código DEVE justificar sua existência. Filler, repetição, abstração prematura são rejeitados.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+## VI. Expansão, Nunca Repetição, Entre Níveis (NON-NEGOTIABLE)
+Quando L1→L2→L3 chegarem (v0.2+), cada nível REFERENCIA o anterior e ADICIONA. Nunca repete.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+## VII. Honestidade Epistêmica
+Conteúdo gerado DEVE indicar debates abertos, incertezas, múltiplas perspectivas quando aplicável.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+## VIII. Português É A Língua Padrão
+Toda UI, conteúdo, mensagens de erro, prompts internos DEVEM estar em PT-BR. Código (nomes de variáveis, comentários técnicos) em inglês padrão.
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+## IX. Expansibilidade Modular (NON-NEGOTIABLE)
+Features futuras DEVEM ser plugáveis sem reescrever core. Adicionar feature não deve disparar mais que 1-2 mudanças em código existente fora do escopo da própria feature.
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+## X. Spec-Driven Development (NON-NEGOTIABLE)
+Nenhuma feature em produção sem `spec.md` aprovado + `plan.md` aprovado + `tasks.md` executado. Bug fixes triviais e ajustes de config podem ir direto. Toda spec DEVE incluir seção "Constitution + Standards Check".
 
-## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
+## XI. Minimização De Dados Pessoais
+Coletamos APENAS o necessário. v0.1: email + nome (do Google) + mini-perfis declarados. NUNCA: telefone, endereço, dados de cartão, tracking comportamental além da telemetria documentada. Novo campo coletado exige justificativa na spec.
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
-
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+## XII. Mudanças User-Facing Exigem Migration Path
+Mudança que afeta dados ou UX de usuários existentes DEVE ter plano de migração na `plan.md`. Sem migração planejada, PR rejeitado.
